@@ -21,6 +21,7 @@ async def move(ctx, *, move_name: str):
     if move:
         name = move["name"].title()
         type_ = move["type"]["name"].title()
+        accuracy = move["accuracy"]
         power = move["power"] or "N/A"
         pp = move["pp"]
         description = next(
@@ -31,6 +32,7 @@ async def move(ctx, *, move_name: str):
         message = (
             f"**{name}**\n"
             f"Type: {type_}\n"
+            f"Accuracy: {accuracy}\n"
             f"Power: {power}\n"
             f"PP: {pp}\n"
             f"Description: {description}"
