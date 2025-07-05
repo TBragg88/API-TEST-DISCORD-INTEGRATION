@@ -1,13 +1,6 @@
-# Ignore the virtual environment
 venv/
-
-# Ignore environment and secret files
 token.env
 .env
-
-# Ignore Python cache files
 __pycache__/
 *.pyc
-
-# Ignore system files (for macOS or editors)
 .DS_Store
