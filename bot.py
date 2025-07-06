@@ -5,15 +5,19 @@ from poke_api import fetch_move_details
 from poke_api import fetch_pokemon_details
 from poke_api import fetch_species_details
 from config import TYPE_STYLES
-
 from dotenv import load_dotenv
 import os
 
-# Load environment variables first
+
 load_dotenv("token.env")
+
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix='!', intents=intents)
+
+bot = commands.Bot(command_prefix="!",
+                   intents=intents,
+                   help_command=None,
+                   case_insensitive=True)
 
 
 @bot.event
@@ -102,29 +106,41 @@ async def pokemon(ctx, *, name: str):
                     value=flavor_text,
                     inline=False)
 
-    for key in ["hp", "attack", "defense"]:
-        if key in stats:
-            embed.add_field(name=key.capitalize(),
-                            value=stats[key],
-                            inline=True)
+    stat_labels = {
+        "hp": "HP",
+        "attack": "Atk",
+        "defense": "Def",
+        "special-attack": "Sp. Atk",
+        "special-defense": "Sp. Def",
+        "speed": "Speed"
+    }
+
+    total_base_stat = 0
+    for stat_key, label in stat_labels.items():
+        val = stats.get(stat_key)
+        if val is not None:
+            embed.add_field(name=label, value=str(val), inline=True)
+            total_base_stat += val
+
+    embed.add_field(name="Total", value=str(total_base_stat), inline=False)
 
     await ctx.send(embed=embed)
 
 
-@bot.command()
+@bot.command("help")
 async def pokehelp(ctx):
-    await ctx.send("Hello, I'm PokeNerd!\n"
+    await ctx.send("Hello, I'm PokeNerd!"
                    "Need some help?\n"
-                   'Just type `!pokemon <name>` for Pokémon data\n'
-                   'or `!move <name>` to get info about a move.')
+                   'Just type `!pokemon <pokemon>` for Pokémon data\n'
+                   'or `!move <move>` to get info about a move.')
 
 
 @bot.command()
 async def steve(ctx):
-    cool = random.choice(["cool", "not cool"])
+    cool = random.choice(["cool ❤️", "not cool 😆"])
     await ctx.send(
         f"Hey {ctx.author.mention}, "
-        f"Stëve thinks you're {cool} :bingthumb:")
+        f"Stëve thinks you're {cool}")
 
 
 TOKEN = os.getenv("DISCORD_TOKEN")
