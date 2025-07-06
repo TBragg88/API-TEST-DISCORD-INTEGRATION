@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+import random
 from poke_api import fetch_move_details
 from poke_api import fetch_pokemon_details
 from poke_api import fetch_species_details
@@ -10,7 +11,6 @@ import os
 
 # Load environment variables first
 load_dotenv("token.env")
-
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -109,6 +109,23 @@ async def pokemon(ctx, *, name: str):
                             inline=True)
 
     await ctx.send(embed=embed)
+
+
+@bot.command()
+async def pokehelp(ctx):
+    await ctx.send("Hello, I'm PokeNerd!\n"
+                   "Need some help?\n"
+                   'Just type `!pokemon <name>` for Pokémon data\n'
+                   'or `!move <name>` to get info about a move.')
+
+
+@bot.command()
+async def steve(ctx):
+    cool = random.choice(["cool", "not cool"])
+    await ctx.send(
+        f"Hey {ctx.author.mention}, "
+        f"Stëve thinks you're {cool} :bingthumb:")
+
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 bot.run(TOKEN)
