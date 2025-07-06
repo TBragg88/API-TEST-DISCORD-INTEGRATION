@@ -1,6 +1,9 @@
 import discord
 from discord.ext import commands
 from poke_api import fetch_move_details
+from poke_api import fetch_pokemon_details
+from poke_api import fetch_species_details
+from config import TYPE_STYLES
 
 from dotenv import load_dotenv
 import os
@@ -48,6 +51,64 @@ async def move(ctx, *, move_name: str):
         await ctx.send(f"Couldn't find a move called `{move_name}`!")
 
 
-load_dotenv()
+@bot.command()
+async def pokemon(ctx, *, name: str):
+    pokemon = await fetch_pokemon_details(name)
+    if not pokemon:
+        return await ctx.send(f"❌ Couldn't find a Pokémon named `{name}`.")
+
+    species = await fetch_species_details(name)
+    flavor_text = next(
+        (entry["flavor_text"].replace('\n', ' ').replace('\f', ' ')
+         for entry in species.get("flavor_text_entries", [])
+         if entry["language"]["name"] == "en"),
+        "No description available."
+    )
+
+    types = [t["type"]["name"].capitalize() for t in pokemon["types"]]
+    type_line = " ".join(
+        f"{TYPE_STYLES.get(t, {'emoji': '❓'})['emoji']} {t}" for t in types
+    )
+    color = TYPE_STYLES.get(types[0], {}).get("color", 0x5865F2)
+
+    display_name = pokemon["name"].capitalize()
+    poke_id = pokemon["id"]
+    sprite = pokemon["sprites"]["front_default"]
+    stats = {s["stat"]["name"]: s["base_stat"] for s in pokemon["stats"]}
+    abilities = ", ".join(a["ability"]["name"].title()
+                          for a in pokemon["abilities"])
+    height = pokemon["height"] / 10
+    weight = pokemon["weight"] / 10
+
+    embed = discord.Embed(
+        title=f"{display_name} (#{poke_id})",
+        description=f"Type: {type_line}",
+        color=color
+    )
+
+    if sprite:
+        embed.set_thumbnail(url=sprite)
+
+    embed.add_field(name="Abilities",
+                    value=abilities or "N/A",
+                    inline=True)
+    embed.add_field(name="Height",
+                    value=f"{height} m",
+                    inline=True)
+    embed.add_field(name="Weight",
+                    value=f"{weight} kg",
+                    inline=True)
+    embed.add_field(name="Description",
+                    value=flavor_text,
+                    inline=False)
+
+    for key in ["hp", "attack", "defense"]:
+        if key in stats:
+            embed.add_field(name=key.capitalize(),
+                            value=stats[key],
+                            inline=True)
+
+    await ctx.send(embed=embed)
+
 TOKEN = os.getenv("DISCORD_TOKEN")
 bot.run(TOKEN)
